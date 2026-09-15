@@ -47,7 +47,7 @@ def get_all_vocabulary(lesson=10):
 def init():
     os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0, 10)
     py.init()
-    screen = py.display.set_mode((500, 50), py.NOFRAME)
+    screen = py.display.set_mode((500, 75), py.NOFRAME)
     hwnd = py.display.get_wm_info()["window"]
     win32gui.SetWindowLong(hwnd, win32con.GWL_EXSTYLE, win32gui.GetWindowLong(
                            hwnd, win32con.GWL_EXSTYLE) | win32con.WS_EX_LAYERED)
@@ -100,7 +100,9 @@ def main():
     screen = init()
     big_font = py.font.Font(f'{THIS_DIRECTORY}fonts{os.sep}Moshimoji-0Y6R.ttf', 30)
     medium_font = py.font.Font(f'{THIS_DIRECTORY}fonts{os.sep}Moshimoji-0Y6R.ttf', 24)
-    logo = py.image.load(f'{THIS_DIRECTORY}assets{os.sep}icon32.png')
+    small_font = py.font.Font(f'{THIS_DIRECTORY}fonts{os.sep}KaoriGel.ttf', 12)
+    logo = py.image.load(f'{THIS_DIRECTORY}assets{os.sep}icon.png')
+    difficulty_dial = py.image.load(f'{THIS_DIRECTORY}assets{os.sep}difficulty_dial.png')
 
     scheduler = Scheduler()
     ratings = {
@@ -128,7 +130,7 @@ def main():
             (255, 255, 255),
             py.Rect(
                 0, 0,      # top left
-                width, 50  # bottom right
+                width, 50  # width, height
             )
         )
         py.draw.circle(
@@ -154,6 +156,46 @@ def main():
         if modes[mode] == 'english':
             screen.blit(logo, (width - 16, 9))
 
+            easy_button = py.Rect(
+                10, 50,     # top left
+                20, 10      # width, height
+            )
+            py.draw.rect(
+                screen,
+                ( 6, 214, 160),
+                easy_button
+            )
+
+            medium_button = py.Rect(
+                30, 50,     # top left
+                20, 10      # width, height
+            )
+            py.draw.rect(
+                screen,
+                ( 17, 138, 178),
+                medium_button
+            )
+
+            hard_button = py.Rect(
+                50, 50,     # top left
+                20, 10      # width, height
+            )
+            py.draw.rect(
+                screen,
+                (255, 209, 102),
+                hard_button
+            )
+
+            impossible_button = py.Rect(
+                70, 50,     # top left
+                20, 10      # width, height
+            )
+            py.draw.rect(
+                screen,
+                (255, 127,  80),
+                impossible_button
+            )
+
             screen.blit(
                 medium_font.render(
                     card['english'],
@@ -162,6 +204,7 @@ def main():
                 ),
                 (10, 10)        # position
             )
+
 
         # update screen
         py.display.update()
@@ -176,11 +219,17 @@ def main():
             if event.type == py.MOUSEBUTTONDOWN and event.button == 1:
                 mode += 1
                 if mode >= len(modes):
-                    # TODO:
-                    # - get mouse position on click
-                    # - use position to record difficulty
-                    # - save difficulty
-                    done = True
+                    ease = None
+                    
+                    # TODO: get click position
+
+
+                    if ease is not None:
+                        # TODO: save difficulty
+                        done = True
+                    else:
+                        mode -= 1
+
 
 
         # all_cards = load()
