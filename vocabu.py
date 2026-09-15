@@ -112,18 +112,18 @@ def main():
     }
     done = False
 
-    all_cards = load()
-    card = get_due_card(all_cards)
     modes = ['minimized', 'japanese', 'english']
-    mode = 1
+    mode = 0
     while not done:
         screen.fill((255,0,128)) # transparent background colour
 
-        jp_width, _ = big_font.size(card['hiragana'])
-        en_width, _ = medium_font.size(card['english'])
-        width = max([jp_width, en_width]) + 50
+        if modes[mode] == 'minimized':
+            width = 20
+        else:
+            jp_width, _ = big_font.size(card['hiragana'])
+            en_width, _ = medium_font.size(card['english'])
+            width = max([jp_width, en_width]) + 50
 
-        # bar & logo
         py.draw.rect(
             screen,
             (255, 255, 255),
@@ -139,11 +139,9 @@ def main():
             25,         # radius
             0           # border thickness
         )
+        screen.blit(logo, (width - 16, 9))
 
-        # mode-specific content
         if modes[mode] == 'japanese':
-            screen.blit(logo, (width - 16, 9))
-
             screen.blit(
                 big_font.render(
                     card['hiragana'],
@@ -153,8 +151,6 @@ def main():
                 (10, 10)        # position
             )
         if modes[mode] == 'english':
-            screen.blit(logo, (width - 16, 9))
-
             easy_button = py.Rect(
                 10, 50,     # top left
                 20, 10      # width, height
@@ -209,48 +205,39 @@ def main():
         py.display.update()
 
         # user input
-        for event in py.event.get():    
-            if event.type == py.QUIT:   
-                done = True                
+        for event in py.event.get():               
             if event.type == py.KEYDOWN:    
                 if event.key == py.K_ESCAPE:  
                     done = True
             if event.type == py.MOUSEBUTTONDOWN and event.button == 1:
+                if mode == 0:
+                    all_cards = load()
+                    card = get_due_card(all_cards)
                 mode += 1
                 if mode >= len(modes):
                     ease = None
-                    
-                    # TODO: get click position
-
+                    if easy_button.collidepoint(py.mouse.get_pos()):
+                        ease = 4
+                    if medium_button.collidepoint(py.mouse.get_pos()):
+                        ease = 3
+                    if hard_button.collidepoint(py.mouse.get_pos()):
+                        ease = 2
+                    if impossible_button.collidepoint(py.mouse.get_pos()):
+                        ease = 1
 
                     if ease is not None:
-                        # TODO: save difficulty
-                        done = True
+                        updated_metadata, review_log = scheduler.review_card(
+                            card=card['metadata'],
+                            rating=ease,
+                            review_datetime=datetime.now(TIMEZONE)
+                        )
+                        all_cards[card['card_id']]['metadata'] = updated_metadata
+                        save(all_cards)
+                        mode = 0
                     else:
                         mode -= 1
 
 
-
-        # all_cards = load()
-        # card = get_due_card(all_cards)
-        # print(card['kanji'])
-        # print(card['hiragana'])
-        # input('Press Enter to reveal')
-        # print(f'Eng: {card["english"]}')
-
-
-        # rating = input('Was that [e]asy [m]edium [h]ard or [i]mpossible > ')
-        # rating = ratings.get(rating, 2)
-        # updated_metadata, review_log = scheduler.review_card(
-        #     card=card['metadata'],
-        #     rating=rating,
-        #     review_datetime=datetime.now(TIMEZONE)
-        # )
-
-        # all_cards[card['card_id']]['metadata'] = updated_metadata
-
-        # save(all_cards)
-        # time.sleep(CARD_INTERVAL)
 
 if __name__ == '__main__':
     main()
