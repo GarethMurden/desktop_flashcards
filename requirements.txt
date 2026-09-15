@@ -1,2 +1,3 @@
 fsrs==6.3.2
 pygame-ce==2.5.8
+pywin32
