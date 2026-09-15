@@ -102,7 +102,6 @@ def main():
     medium_font = py.font.Font(f'{THIS_DIRECTORY}fonts{os.sep}Moshimoji-0Y6R.ttf', 24)
     small_font = py.font.Font(f'{THIS_DIRECTORY}fonts{os.sep}KaoriGel.ttf', 12)
     logo = py.image.load(f'{THIS_DIRECTORY}assets{os.sep}icon.png')
-    difficulty_dial = py.image.load(f'{THIS_DIRECTORY}assets{os.sep}difficulty_dial.png')
 
     scheduler = Scheduler()
     ratings = {
