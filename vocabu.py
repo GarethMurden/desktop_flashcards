@@ -96,6 +96,17 @@ def get_due_card(all_cards):
     if len(options) > 0:
         return random.choice(options)
 
+def wait(minutes=30):
+    current_time = datetime.now()
+    wait_ends = current_time + timedelta(minutes=minutes)
+    return wait_ends
+
+def wait_is_over(wait_ends):
+    wait_ends = wait_ends.strftime('%Y-%m-%d %H:%M:%S')
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    # print(f' [DEBUG] : {wait_ends=} <= {current_time=} == {wait_ends <= current_time}')
+    return wait_ends <= current_time
+
 def main():
     screen = init()
     big_font = py.font.Font(f'{THIS_DIRECTORY}fonts{os.sep}Moshimoji-0Y6R.ttf', 30)
@@ -112,93 +123,112 @@ def main():
     }
     done = False
 
-    modes = ['minimized', 'japanese', 'english']
+    modes = ['hidden', 'minimized', 'japanese', 'english']
     mode = 0
+    card = None
+    streak = 0
+    wait_ends = datetime.now()
     while not done:
         screen.fill((255,0,128)) # transparent background colour
 
-        if modes[mode] == 'minimized':
-            width = 20
+        if modes[mode] == 'hidden':
+            if streak > 0 and streak % 5 == 0:
+                streak = 0
+                wait_ends = wait(30)
+                # print(f' [DEBUG] :  waiting until {wait_ends.strftime("%H:%M:%S")}')
+            if wait_is_over(wait_ends):
+                if card is None:
+                    all_cards = load()
+                    card = get_due_card(all_cards)   
+                    if card is not None:
+                        mode = 1
+                        # print(f' [DEBUG] : card due: {card["hiragana"]}')         
+                else:
+                    mode = 1
         else:
-            jp_width, _ = big_font.size(card['hiragana'])
-            en_width, _ = medium_font.size(card['english'])
-            width = max([jp_width, en_width]) + 50
 
-        py.draw.rect(
-            screen,
-            (255, 255, 255),
-            py.Rect(
-                0, 0,      # top left
-                width, 50  # width, height
-            )
-        )
-        py.draw.circle(
-            screen,
-            (255, 255, 255),
-            (width, 25),  # positon
-            25,         # radius
-            0           # border thickness
-        )
-        screen.blit(logo, (width - 16, 9))
+            if modes[mode] == 'minimized':
+                width = 20
+            else:
+                jp_width, _ = big_font.size(card['hiragana'])
+                en_width, _ = medium_font.size(card['english'])
+                width = max([jp_width, en_width]) + 50
 
-        if modes[mode] == 'japanese':
-            screen.blit(
-                big_font.render(
-                    card['hiragana'],
-                    True,       # anti-alias
-                    (0, 0, 0)
-                ),
-                (10, 10)        # position
-            )
-        if modes[mode] == 'english':
-            easy_button = py.Rect(
-                10, 50,     # top left
-                20, 10      # width, height
-            )
             py.draw.rect(
                 screen,
-                ( 6, 214, 160),
-                easy_button
+                (255, 255, 255),
+                py.Rect(
+                    0, 0,      # top left
+                    width, 50  # width, height
+                )
             )
-
-            medium_button = py.Rect(
-                30, 50,     # top left
-                20, 10      # width, height
-            )
-            py.draw.rect(
+            py.draw.circle(
                 screen,
-                ( 17, 138, 178),
-                medium_button
+                (255, 255, 255),
+                (width, 25),  # positon
+                25,         # radius
+                0           # border thickness
             )
+            screen.blit(logo, (width - 16, 9))
 
-            hard_button = py.Rect(
-                50, 50,     # top left
-                20, 10      # width, height
-            )
-            py.draw.rect(
-                screen,
-                (255, 209, 102),
-                hard_button
-            )
+            if modes[mode] == 'japanese':
+                screen.blit(
+                    big_font.render(
+                        card['hiragana'],
+                        True,       # anti-alias
+                        (0, 0, 0)
+                    ),
+                    (10, 10)        # position
+                )
+            if modes[mode] == 'english':
+                easy_button = py.Rect(
+                    10, 50,     # top left
+                    20, 10      # width, height
+                )
+                py.draw.rect(
+                    screen,
+                    ( 6, 214, 160),
+                    easy_button
+                )
 
-            impossible_button = py.Rect(
-                70, 50,     # top left
-                20, 10      # width, height
-            )
-            py.draw.rect(
-                screen,
-                (255, 127,  80),
-                impossible_button
-            )
+                medium_button = py.Rect(
+                    30, 50,     # top left
+                    20, 10      # width, height
+                )
+                py.draw.rect(
+                    screen,
+                    ( 17, 138, 178),
+                    medium_button
+                )
 
-            screen.blit(
-                medium_font.render(
-                    card['english'],
-                    True,       # anti-alias
-                    (0, 0, 0)
-                ),
-                (10, 10)        # position
-            )
+                hard_button = py.Rect(
+                    50, 50,     # top left
+                    20, 10      # width, height
+                )
+                py.draw.rect(
+                    screen,
+                    (255, 209, 102),
+                    hard_button
+                )
+
+                impossible_button = py.Rect(
+                    70, 50,     # top left
+                    20, 10      # width, height
+                )
+                py.draw.rect(
+                    screen,
+                    (255, 127,  80),
+                    impossible_button
+                )
+
+                screen.blit(
+                    medium_font.render(
+                        card['english'],
+                        True,       # anti-alias
+                        (0, 0, 0)
+                    ),
+                    (10, 10)        # position
+                )
 
 
         # update screen
@@ -210,9 +240,6 @@ def main():
                 if event.key == py.K_ESCAPE:  
                     done = True
             if event.type == py.MOUSEBUTTONDOWN and event.button == 1:
-                if mode == 0:
-                    all_cards = load()
-                    card = get_due_card(all_cards)
                 mode += 1
                 if mode >= len(modes):
                     ease = None
@@ -232,8 +259,12 @@ def main():
                             review_datetime=datetime.now(TIMEZONE)
                         )
                         all_cards[card['card_id']]['metadata'] = updated_metadata
+                        # print(f' [DEBUG]: Saved card {ease=}')
                         save(all_cards)
+                        card = None
                         mode = 0
+                        streak += 1
+                        # print(f' [DEBUG]: {streak=}')
                     else:
                         mode -= 1
 
