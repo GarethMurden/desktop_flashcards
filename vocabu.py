@@ -45,9 +45,10 @@ def get_all_vocabulary(lesson=10):
     return cards
 
 def init():
-    os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0, 10)
+    # os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0, 10)
     py.init()
     screen = py.display.set_mode((500, 75), py.NOFRAME)
+    win32gui.SetWindowPos(py.display.get_wm_info()['window'], -1, 0, 10, 0, 0, 1)
     hwnd = py.display.get_wm_info()["window"]
     win32gui.SetWindowLong(hwnd, win32con.GWL_EXSTYLE, win32gui.GetWindowLong(
                            hwnd, win32con.GWL_EXSTYLE) | win32con.WS_EX_LAYERED)
